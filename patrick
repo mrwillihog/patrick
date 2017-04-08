@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+DIVISIONS = %w('' thousand million billion trillion quadrillion quintillion sextillion septillion octillion nonillion decillion undecillion duodecillion tredecillion quattuordecillion quindecillion sexdecillion septendecillion octodecillion novemdecillion vigintillion unvigintillion duovigintillion trevigintillion quattuorvigintillion quinvigintillion sexvigintillion septenvigintillion octovigintillion novemvigintillion trigintillion untrigintillion duotrigintillion tretrigintillion quattuortrigintillion quintrigintillion sextrigintillion septentrigintillion octotrigintillion novemtrigintillion quadragintillion unquadragintillion duoquadragintillion trequadragintillion quattuorquadragintillion quinquadragintillion sexquadragintillion septenquadragintillion octoquadragintillion novemquadragintillion quinquagintillion unquinquagintillion duoquinquagintillion trequinquagintillion quattuorquinquagintillion quinquinquagintillion sexquinquagintillion septenquinquagintillion octoquinquagintillion novemquinquagintillion sexagintillion unsexagintillion duosexagintillion tresexagintillion quattuorsexagintillion quinsexagintillion sexsexagintillion septensexagintillion octosexagintillion novemsexagintillion septuagintillion unseptuagintillion duoseptuagintillion treseptuagintillion quattuorseptuagintillion quinseptuagintillion sexseptuagintillion septenseptuagintillion octoseptuagintillion novemseptuagintillion octogintillion unoctogintillion duooctogintillion treoctogintillion quattuoroctogintillion quinoctogintillion sexoctogintillion septenoctogintillion octooctogintillion novemoctogintillion nonagintillion unnonagintillion duononagintillion trenonagintillion quattuornonagintillion quinnonagintillion sexnonagintillion septennonagintillion octononagintillion novemnonagintillion centillion).freeze
+UNDER_HUNDRED = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty one', 'twenty two', 'twenty three', 'twenty four', 'twenty five', 'twenty six', 'twenty seven', 'twenty eight', 'twenty nine', 'thirty', 'thirty one', 'thirty two', 'thirty three', 'thirty four', 'thirty five', 'thirty six', 'thirty seven', 'thirty eight', 'thirty nine', 'forty', 'forty one', 'forty two', 'forty three', 'forty four', 'forty five', 'forty six', 'forty seven', 'forty eight', 'forty nine', 'fifty', 'fifty one', 'fifty two', 'fifty three', 'fifty four', 'fifty five', 'fifty six', 'fifty seven', 'fifty eight', 'fifty nine', 'sixty', 'sixty one', 'sixty two', 'sixty three', 'sixty four', 'sixty five', 'sixty six', 'sixty seven', 'sixty eight', 'sixty nine', 'seventy', 'seventy one', 'seventy two', 'seventy three', 'seventy four', 'seventy five', 'seventy six', 'seventy seven', 'seventy eight', 'seventy nine', 'eighty', 'eighty one', 'eighty two', 'eighty three', 'eighty four', 'eighty five', 'eighty six', 'eighty seven', 'eighty eight', 'eighty nine', 'ninety', 'ninety one', 'ninety two', 'ninety three', 'ninety four', 'ninety five', 'ninety six', 'ninety seven', 'ninety eight', 'ninety nine', 'one hundred'].freeze
+NUMBER_PATTERN = /^-?[0-9,]+/.freeze
+
+def result_below_one_thousand(num, counter)
+  hundred, remaining = num.divmod(100)
+
+  return higher_than_hundred(hundred, remaining, counter) if hundred != 0
+  UNDER_HUNDRED[remaining] if hundred == 0 && remaining != 0
+end
+
+def higher_than_hundred(hundred, remaining, counter)
+  century = UNDER_HUNDRED[hundred]
+  if remaining != 0
+    return century + ' hundred and ' + UNDER_HUNDRED[remaining] if counter != 0
+    return century + ' hundred and ' + UNDER_HUNDRED[remaining]
+  end
+  return century + ' hundred ' if remaining == 0
+end
+
+def parse_number(number)
+  number = number.gsub(',', '').to_i
+  number, sign = number < 0 ? [number.abs, 'minus '] : [number, '']
+
+  return (sign + UNDER_HUNDRED[number]) if number <= 100
+
+  counter = 0
+  result = []
+  while number != 0
+    number, remaining = number.divmod(1000)
+    temp_result = result_below_one_thousand(remaining, counter)
+    result << temp_result + ' ' + DIVISIONS[counter] + ' ' if temp_result
+    counter += 1
+  end
+  sign + result.reverse.join('').rstrip
+end
+
+ARGF.each do |line|
+  command = parse_number(line) if line =~ NUMBER_PATTERN
+  `say #{command}` unless command.nil?
+end
