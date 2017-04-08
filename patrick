@@ -4,20 +4,19 @@ DIVISIONS = %w('' thousand million billion trillion quadrillion quintillion sext
 UNDER_HUNDRED = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty one', 'twenty two', 'twenty three', 'twenty four', 'twenty five', 'twenty six', 'twenty seven', 'twenty eight', 'twenty nine', 'thirty', 'thirty one', 'thirty two', 'thirty three', 'thirty four', 'thirty five', 'thirty six', 'thirty seven', 'thirty eight', 'thirty nine', 'forty', 'forty one', 'forty two', 'forty three', 'forty four', 'forty five', 'forty six', 'forty seven', 'forty eight', 'forty nine', 'fifty', 'fifty one', 'fifty two', 'fifty three', 'fifty four', 'fifty five', 'fifty six', 'fifty seven', 'fifty eight', 'fifty nine', 'sixty', 'sixty one', 'sixty two', 'sixty three', 'sixty four', 'sixty five', 'sixty six', 'sixty seven', 'sixty eight', 'sixty nine', 'seventy', 'seventy one', 'seventy two', 'seventy three', 'seventy four', 'seventy five', 'seventy six', 'seventy seven', 'seventy eight', 'seventy nine', 'eighty', 'eighty one', 'eighty two', 'eighty three', 'eighty four', 'eighty five', 'eighty six', 'eighty seven', 'eighty eight', 'eighty nine', 'ninety', 'ninety one', 'ninety two', 'ninety three', 'ninety four', 'ninety five', 'ninety six', 'ninety seven', 'ninety eight', 'ninety nine', 'one hundred'].freeze
 NUMBER_PATTERN = /^-?[0-9,]+$/.freeze
 
-def result_below_one_thousand(num, counter)
+def result_below_one_thousand(num)
   hundred, remaining = num.divmod(100)
 
-  return higher_than_hundred(hundred, remaining, counter) if hundred != 0
+  return higher_than_hundred(hundred, remaining) if hundred != 0
   UNDER_HUNDRED[remaining] if hundred == 0 && remaining != 0
 end
 
-def higher_than_hundred(hundred, remaining, counter)
+def higher_than_hundred(hundred, remaining)
   century = UNDER_HUNDRED[hundred]
   if remaining != 0
-    return century + ' hundred and ' + UNDER_HUNDRED[remaining] if counter != 0
     return century + ' hundred and ' + UNDER_HUNDRED[remaining]
   end
-  return century + ' hundred ' if remaining == 0
+  return century + ' hundred' if remaining == 0
 end
 
 def parse_number(number)
@@ -30,11 +29,16 @@ def parse_number(number)
   result = []
   while number != 0
     number, remaining = number.divmod(1000)
-    temp_result = result_below_one_thousand(remaining, counter)
-    result << temp_result + ' ' + DIVISIONS[counter] + ' ' if temp_result
+    temp_result = result_below_one_thousand(remaining)
+    if temp_result && counter > 0
+      temp_result = 'and ' + temp_result if number > 0
+      temp_result += ' ' + DIVISIONS[counter]
+    end
+    temp_result = 'and ' + temp_result if temp_result && counter == 0 && remaining < 100
+    result << temp_result if temp_result
     counter += 1
   end
-  sign + result.reverse.join('').rstrip
+  sign + result.reverse.join(' ').rstrip
 end
 
 def run(line)
