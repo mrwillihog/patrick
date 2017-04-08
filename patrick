@@ -49,7 +49,11 @@ end
 if ARGV.size > 0
   run(ARGV.join(' '))
 else
-  ARGF.each do |line|
-    run line
+  begin
+    ARGF.each do |line|
+      run line
+    end
+  rescue Interrupt
+    exit 0
   end
 end
